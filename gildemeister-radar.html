@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Gildemeister · Digital Radar</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --blue: #0080C9;
+    --blue-mid: #006BAA;
+    --blue-light: #1A9AE0;
+    --blue-pale: #E5F4FF;
+    --bg: #F0F4F8;
+    --surface: #FFFFFF;
+    --text: #0A1928;
+    --text-muted: #5A6B7A;
+    --border: #DCE6EF;
+    --green: #00853E;
+    --green-bg: #E6F5ED;
+    --amber: #B06800;
+    --amber-bg: #FFF3DC;
+    --red: #C0001A;
+    --red-bg: #FFE8EC;
+    --nav-h: 64px;
+    --header-h: 68px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  .app-header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--blue);
+    padding: 0 16px;
+    display: flex; align-items: center; gap: 12px;
+    height: var(--header-h);
+  }
+
+  .logo-wrap {
+    display: flex; align-items: center; gap: 10px; flex: 1;
+  }
+
+  .logo-box {
+    background: white;
+    border-radius: 8px;
+    padding: 5px 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Gildemeister wordmark SVG */
+  .logo-box svg { height: 20px; width: auto; }
+
+  .app-name {
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.85;
+    letter-spacing: 0.3px;
+  }
+
+  .live-badge {
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px; padding: 5px 10px;
+    font-size: 11px; font-weight: 700; color: white;
+  }
+  .live-dot { width: 7px; height: 7px; background: #4ADE80; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  /* SCROLL */
+  .scroll-area {
+    padding: 14px 14px calc(var(--nav-h) + 20px);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: flex; flex-direction: column; gap: 10px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border-radius: 14px; padding: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .card-hero {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 60%, var(--blue-light) 100%);
+    color: white; border-radius: 14px; padding: 20px; border: none;
+  }
+  .card-hero .eyebrow {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 6px;
+  }
+  .card-hero h2 { font-size: 20px; font-weight: 800; line-height: 1.25; margin-bottom: 8px; }
+  .card-hero p { font-size: 13px; color: rgba(255,255,255,0.72); line-height: 1.5; }
+
+  /* KPI GRID */
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .kpi-card {
+    background: var(--surface); border-radius: 12px;
+    padding: 13px; border: 1px solid var(--border);
+  }
+  .kpi-label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+  .kpi-value { font-size: 24px; font-weight: 800; line-height: 1; color: var(--text); }
+  .kpi-delta { font-size: 11px; font-weight: 600; margin-top: 3px; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+  .neutral { color: var(--text-muted); }
+
+  /* SECTION */
+  .sec-title { font-size: 17px; font-weight: 800; }
+  .sec-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .sec-hd { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+
+  /* INSIGHT */
+  .insight {
+    background: var(--blue-pale);
+    border-left: 3px solid var(--blue-light);
+    border-radius: 0 10px 10px 0; padding: 12px 14px;
+  }
+  .insight p { font-size: 13px; line-height: 1.6; color: var(--blue); }
+  .insight p strong { color: var(--blue); }
+
+  /* SEGMENT LIST */
+  .seg-list { display: flex; flex-direction: column; }
+  .seg-row {
+    display: flex; align-items: center; padding: 12px 0;
+    border-bottom: 1px solid var(--border); gap: 10px;
+  }
+  .seg-row:last-child { border-bottom: none; }
+  .seg-info { flex: 1.3; }
+  .seg-name { font-size: 14px; font-weight: 600; }
+  .seg-sub { font-size: 11px; color: var(--text-muted); }
+  .seg-bar-wrap { flex: 1; }
+  .seg-bar { height: 6px; background: #DCE6EF; border-radius: 3px; overflow: hidden; }
+  .seg-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--blue) 0%, var(--blue-light) 100%); }
+  .seg-pct { font-size: 13px; font-weight: 700; min-width: 48px; text-align: right; }
+
+  /* NOTICIAS */
+  .noticia {
+    border-bottom: 1px solid var(--border); padding: 14px 0;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .noticia:last-child { border-bottom: none; padding-bottom: 0; }
+  .noticia-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--blue-light);
+  }
+  .noticia-title { font-size: 14px; font-weight: 700; line-height: 1.35; color: var(--text); }
+  .noticia-meta { font-size: 11px; color: var(--text-muted); }
+  .noticia-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 600; color: var(--blue-light);
+    text-decoration: none; margin-top: 2px;
+  }
+
+  /* UPDATE BAR */
+  .update-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border-radius: 12px;
+    padding: 11px 14px; border: 1px solid var(--border);
+  }
+  .upd-left { display: flex; align-items: center; gap: 8px; }
+  .upd-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+  .upd-text strong { display: block; font-size: 13px; }
+  .upd-text span { font-size: 11px; color: var(--text-muted); }
+  .btn-upd {
+    background: var(--blue); color: white; border: none;
+    border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+
+  /* PILLS */
+  .pill-row {
+    display: flex; gap: 7px; overflow-x: auto; padding-bottom: 2px;
+    scrollbar-width: none; margin-bottom: 10px;
+  }
+  .pill-row::-webkit-scrollbar { display: none; }
+  .pill {
+    flex-shrink: 0; padding: 6px 13px; border-radius: 20px;
+    font-size: 13px; font-weight: 600; border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--text-muted); cursor: pointer;
+  }
+  .pill.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+  /* BRAND CARD */
+  .brand-card {
+    background: var(--surface); border-radius: 14px;
+    padding: 16px; border: 1px solid var(--border); margin-bottom: 10px;
+  }
+  .brand-panel { display: none; }
+  .brand-panel.active { display: block; }
+  .brand-hd { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px; }
+  .brand-name { font-size: 18px; font-weight: 800; }
+  .brand-tagline { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+  .score-bar { height: 5px; background: #DCE6EF; border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
+  .score-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--blue) 0%, var(--blue-light) 100%); }
+
+  .opp-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .opp-alta { background: var(--green-bg); color: var(--green); }
+  .opp-media { background: var(--amber-bg); color: var(--amber); }
+  .opp-watch { background: var(--red-bg); color: var(--red); }
+
+  .dpills { display: flex; gap: 7px; margin-bottom: 12px; flex-wrap: wrap; }
+  .dpill { background: var(--bg); border-radius: 8px; padding: 6px 10px; font-size: 11px; }
+  .dpill-label { color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 2px; }
+  .dpill-value { font-weight: 700; font-size: 13px; }
+
+  .brand-insight {
+    border-left: 3px solid var(--blue-light);
+    padding-left: 10px; font-size: 13px; line-height: 1.6; color: var(--text-muted);
+  }
+
+  /* COMPETITION */
+  .comp-card { border-bottom: 1px solid var(--border); padding: 14px 0; }
+  .comp-card:last-child { border-bottom: none; }
+  .comp-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .comp-name { font-size: 16px; font-weight: 700; }
+  .comp-seg { font-size: 11px; color: var(--text-muted); }
+  .threat { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
+  .t-alta { background: var(--red-bg); color: var(--red); }
+  .t-media { background: var(--amber-bg); color: var(--amber); }
+  .t-baja { background: var(--green-bg); color: var(--green); }
+  .comp-body { font-size: 13px; line-height: 1.6; color: var(--text-muted); }
+  .comp-body strong { color: var(--text); }
+
+  /* ACCIONES */
+  .action-card {
+    background: var(--surface); border-radius: 14px;
+    padding: 16px; border: 1px solid var(--border); margin-bottom: 10px;
+  }
+  .action-num { font-size: 10px; font-weight: 700; color: var(--blue-light); letter-spacing: 1px; margin-bottom: 5px; text-transform: uppercase; }
+  .action-title { font-size: 15px; font-weight: 800; line-height: 1.3; margin-bottom: 8px; }
+  .action-body { font-size: 13px; line-height: 1.6; color: var(--text-muted); margin-bottom: 10px; }
+  .action-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .action-tag { background: var(--blue-pale); border-radius: 6px; padding: 4px 9px; font-size: 11px; font-weight: 600; color: var(--blue); }
+
+  /* NOTA */
+  .nota { background: var(--bg); border-radius: 10px; padding: 11px; font-size: 11px; color: var(--text-muted); line-height: 1.5; border: 1px solid var(--border); }
+  .nota strong { color: var(--text); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px; height: var(--nav-h);
+    background: var(--surface); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 4px; z-index: 100;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 8px 10px; cursor: pointer; border-radius: 10px; flex: 1;
+  }
+  .nav-item svg { width: 21px; height: 21px; }
+  .nav-item span { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+  .nav-item svg path, .nav-item svg rect, .nav-item svg circle { stroke: var(--text-muted); }
+  .nav-item.active span { color: var(--blue); }
+  .nav-item.active svg path, .nav-item.active svg rect, .nav-item.active svg circle { stroke: var(--blue); }
+</style>
+</head>
+<body>
+
+<!-- HEADER con logo Gildemeister -->
+<header class="app-header">
+  <div class="logo-wrap">
+    <div class="logo-box" style="padding:2px;">
+      <img src="data:image/png;base64,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" style="height:36px;width:36px;border-radius:6px;object-fit:cover;" alt="Gildemeister">
+    </div>
+    <span class="app-name">Digital Radar</span>
+  </div>
+  <div class="live-badge">
+    <div class="live-dot"></div>
+    Live
+  </div>
+</header>
+
+<div class="scroll-area">
+
+  <!-- ═══════════════ HOY ═══════════════ -->
+  <div class="tab-panel active" id="tab-hoy">
+
+    <div class="update-bar">
+      <div class="upd-left">
+        <div class="upd-dot"></div>
+        <div class="upd-text">
+          <strong>Radar activo</strong>
+          <span id="upd-time">Cargando...</span>
+        </div>
+      </div>
+      <button class="btn-upd" onclick="updateTime()">Actualizar</button>
+    </div>
+
+    <div class="card-hero">
+      <div class="eyebrow">PERÚ · CEO VIEW · Q1 2026</div>
+      <h2>El mercado automotriz rompe récords. La batalla es digital.</h2>
+      <p>81,893 livianos vendidos en los primeros 4 meses del año. El mejor arranque de la historia del sector peruano.</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Livianos Q1 2026</div>
+        <div class="kpi-value">62,094</div>
+        <div class="kpi-delta up">+37.3% vs. 2025</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">SUV lidera</div>
+        <div class="kpi-value">54.3%</div>
+        <div class="kpi-delta up">33,728 unid · +49.7%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Electrificados</div>
+        <div class="kpi-value">3,627</div>
+        <div class="kpi-delta up">+77.3% · boom real</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Precio vehículos</div>
+        <div class="kpi-value">−7.3%</div>
+        <div class="kpi-delta down">vs. 2025 · presión margen</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-hd">
+        <div><div class="sec-title">Lectura ejecutiva</div></div>
+      </div>
+      <div class="insight">
+        <p><strong>Ganar volumen no garantiza ganar rentabilidad.</strong> El mercado crece 37% pero los precios bajaron 7.3%. El que captura el lead digital primero y lo convierte eficientemente gana. Gildemeister tiene el portafolio más diverso del mercado peruano: la ventaja está en usarlo.</p>
+      </div>
+    </div>
+
+    <!-- NOTICIAS -->
+    <div class="card">
+      <div class="sec-hd">
+        <div><div class="sec-title">Noticias del sector</div><div class="sec-sub">señales clave · junio 2026</div></div>
+      </div>
+
+      <div class="noticia">
+        <div class="noticia-tag">Mercado · AAP</div>
+        <div class="noticia-title">Mercado automotriz peruano cierra Q1 con 37.3% de crecimiento: el mejor arranque histórico</div>
+        <div class="noticia-meta">Business Empresarial · 12 jun 2026</div>
+        <a class="noticia-link" href="https://www.businessempresarial.com.pe/mercado-automotor-peruano-acelera-su-crecimiento-en-2026/" target="_blank">
+          Leer noticia →
+        </a>
+      </div>
+
+      <div class="noticia">
+        <div class="noticia-tag">Tendencia · Marcas chinas</div>
+        <div class="noticia-title">Marcas chinas se consolidan en Perú: ya representan el 51.8% de los livianos vendidos</div>
+        <div class="noticia-meta">El Comercio · abr 2026</div>
+        <a class="noticia-link" href="https://elcomercio.pe/economia/dia-1/marcas-chinas-se-consolidan-en-el-mercado-automotriz-peruano-cuales-son-las-que-lideran-y-que-se-espera-hacia-el-futuro-noticia/" target="_blank">
+          Leer noticia →
+        </a>
+      </div>
+
+      <div class="noticia">
+        <div class="noticia-tag">Electrificación · Oportunidad</div>
+        <div class="noticia-title">Electrificados crecen 77.3% en Q1 2026: BYD, Geely y Volvo lideran la transición energética</div>
+        <div class="noticia-meta">Gestión · mar 2026</div>
+        <a class="noticia-link" href="https://gestion.pe/economia/empresas/venta-de-vehiculos-nuevos-en-peru-acelera-en-marzo-que-resultados-dejo-el-primer-trimestre-de-2026-noticia/" target="_blank">
+          Leer noticia →
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ MERCADO ═══════════════ -->
+  <div class="tab-panel" id="tab-mercado">
+
+    <div class="card">
+      <div class="sec-title">Radar de mercado</div>
+      <div class="sec-sub">Fuente AAP / SUNARP · Q1–Q2 2026</div>
+    </div>
+
+    <!-- Timeline mensual -->
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:12px">Evolución mensual 2026</div>
+      <div class="seg-list">
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Enero</div><div class="seg-sub">Récord histórico mensual</div></div>
+          <div class="seg-bar-wrap"><div class="seg-bar"><div class="seg-bar-fill" style="width:72%"></div></div></div>
+          <div class="seg-pct up">20,628</div>
+        </div>
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Febrero</div><div class="seg-sub">Crecimiento sostenido</div></div>
+          <div class="seg-bar-wrap"><div class="seg-bar"><div class="seg-bar-fill" style="width:73%"></div></div></div>
+          <div class="seg-pct up">20,956</div>
+        </div>
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Marzo</div><div class="seg-sub">+38.3% vs mar 2025</div></div>
+          <div class="seg-bar-wrap"><div class="seg-bar"><div class="seg-bar-fill" style="width:72%"></div></div></div>
+          <div class="seg-pct up">20,510</div>
+        </div>
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Q1 total</div><div class="seg-sub">Mejor Q1 de la historia</div></div>
+          <div class="seg-bar-wrap"><div class="seg-bar"><div class="seg-bar-fill" style="width:100%"></div></div></div>
+          <div class="seg-pct up">62,094</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Segmentos -->
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:12px">Segmentos por crecimiento</div>
+      <div class="seg-list">
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Electrificados</div><div class="seg-sub">3,627 unidades · 5.2% del total</div></div>
+          <div class="seg-bar-wrap"><div class="seg-bar"><div class="seg-bar-fill" style="width:100%"></div></div></div>
+          <div class="seg-pct up">+77.3%</div>
+        </div>
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">SUV</div><div class="seg-sub">33,728 unid · 54.3% del total</div></div>
+          <div class="seg-bar-wrap"><div class="seg-bar"><div class="seg-bar-fill" style="width:64%"></div></div></div>
+          <div class="seg-pct up">+49.7%</div>
+        </div>
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Camionetas</div><div class="seg-sub">8,108 unidades</div></div>
+          <div class="seg-bar-wrap"><div class="seg-bar"><div class="seg-bar-fill" style="width:34%"></div></div></div>
+          <div class="seg-pct up">+26.4%</div>
+        </div>
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Autos</div><div class="seg-sub">8,849 unidades</div></div>
+          <div class="seg-bar-wrap"><div class="seg-bar"><div class="seg-bar-fill" style="width:25%"></div></div></div>
+          <div class="seg-pct up">+10.3%</div>
+        </div>
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Pickups / furgonetas</div><div class="seg-sub">11,409 unidades</div></div>
+          <div class="seg-bar-wrap"><div class="seg-bar"><div class="seg-bar-fill" style="width:23%"></div></div></div>
+          <div class="seg-pct up">+18.1%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Señales externas -->
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:12px">Señales externas a vigilar</div>
+      <div class="seg-list">
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Puerto de Chancay</div><div class="seg-sub">Reducirá costos importación china → más presión de precio</div></div>
+          <div class="seg-pct" style="color:var(--amber)">⚠ Vigilar</div>
+        </div>
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Tipo de cambio</div><div class="seg-sub">USD/PEN bajo: impulsa poder adquisitivo</div></div>
+          <div class="seg-pct up">S/3.39</div>
+        </div>
+        <div class="seg-row">
+          <div class="seg-info"><div class="seg-name">Financiamiento vehícular</div><div class="seg-sub">Mayor acceso al crédito sosteniendo demanda</div></div>
+          <div class="seg-pct up">↑ activo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nota">
+      <strong>Fuentes:</strong> AAP (Asociación Automotriz del Perú) · SUNARP · Gestión.pe · El Comercio · Business Empresarial. No incluye ventas internas de Gildemeister.
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ MARCAS ═══════════════ -->
+  <div class="tab-panel" id="tab-marcas">
+
+    <div class="nota">
+      <strong>Nota:</strong> lectura cruza datos públicos de segmento con posicionamiento digital de cada marca del portafolio Gildemeister Perú. No incluye ventas internas.
+    </div>
+
+    <div class="pill-row" id="brand-pills">
+      <div class="pill active" onclick="showBrand('todas',this)">Todas</div>
+      <div class="pill" onclick="showBrand('hyundai',this)">Hyundai</div>
+      <div class="pill" onclick="showBrand('volvo',this)">Volvo</div>
+      <div class="pill" onclick="showBrand('geely',this)">Geely</div>
+      <div class="pill" onclick="showBrand('landrover',this)">Land Rover</div>
+      <div class="pill" onclick="showBrand('jmc',this)">JMC</div>
+    </div>
+
+    <div id="brands-container">
+
+      <div class="brand-card brand-panel active" data-brand="hyundai todas">
+        <div class="brand-hd">
+          <div><div class="brand-name">Hyundai</div></div>
+          <span class="opp-badge opp-alta">Oportunidad alta</span>
+        </div>
+        <div class="brand-tagline">SUV · sedans · electrificados · marca ancla</div>
+        <div class="score-bar"><div class="score-fill" style="width:90%"></div></div>
+        <div class="dpills">
+          <div class="dpill"><span class="dpill-label">Segmento clave</span><span class="dpill-value">SUV + electrificados</span></div>
+          <div class="dpill"><span class="dpill-label">Palanca digital</span><span class="dpill-value">Lead gen + CRM</span></div>
+          <div class="dpill"><span class="dpill-label">Contexto</span><span class="dpill-value">Ioniq 5 y 6 disponibles</span></div>
+        </div>
+        <div class="brand-insight">Marca de mayor volumen y tráfico orgánico del portafolio. El boom SUV (+49.7%) y electrificados (+77.3%) son vientos directos. Prioridad: funnels diferenciados por modelo con landing pages específicas y retargeting de alta intención. CRM debe conectar cada lead digital con el concesionario en menos de 2 horas.</div>
+      </div>
+
+      <div class="brand-card brand-panel active" data-brand="volvo todas">
+        <div class="brand-hd">
+          <div><div class="brand-name">Volvo</div></div>
+          <span class="opp-badge opp-alta">Oportunidad alta</span>
+        </div>
+        <div class="brand-tagline">Premium · 100% eléctrico para 2030</div>
+        <div class="score-bar"><div class="score-fill" style="width:75%"></div></div>
+        <div class="dpills">
+          <div class="dpill"><span class="dpill-label">Segmento</span><span class="dpill-value">SUV premium</span></div>
+          <div class="dpill"><span class="dpill-label">Palanca</span><span class="dpill-value">Contenido TCO + retargeting</span></div>
+          <div class="dpill"><span class="dpill-label">Dato</span><span class="dpill-value">Volvo top 3 electrificados Perú</span></div>
+        </div>
+        <div class="brand-insight">Volvo es Geely Company: acceso a tecnología china de vanguardia con credencial europea. El +77.3% en electrificados es el viento más fuerte. Estrategia: comunicar costo total de operación (TCO) vs. combustión. Audiencia de alta intención → funnel largo con nurturing por correo y retargeting de 30/60/90 días.</div>
+      </div>
+
+      <div class="brand-card brand-panel active" data-brand="geely todas">
+        <div class="brand-hd">
+          <div><div class="brand-name">Geely</div></div>
+          <span class="opp-badge opp-alta">Oportunidad alta</span>
+        </div>
+        <div class="brand-tagline">SUV · origen chino premium · con respaldo Volvo</div>
+        <div class="score-bar"><div class="score-fill" style="width:80%"></div></div>
+        <div class="dpills">
+          <div class="dpill"><span class="dpill-label">Contexto</span><span class="dpill-value">Chinos: 51.8% del mercado</span></div>
+          <div class="dpill"><span class="dpill-label">Ventaja</span><span class="dpill-value">Accionista mayoritario de Volvo</span></div>
+          <div class="dpill"><span class="dpill-label">Palanca</span><span class="dpill-value">Diferenciación vs. Chery/MG/BYD</span></div>
+        </div>
+        <div class="brand-insight">El 51.8% del mercado peruano ya es origen chino: la batalla no es si comprar chino, sino cuál. Geely tiene la ventaja única de ser el propietario de Volvo — tecnología, seguridad y credibilidad que Chery, MG o BYD no pueden reclamar. Campaña digital: posicionar a Geely como el chino premium respaldado por estándares europeos. Oportunidad alta.</div>
+      </div>
+
+      <div class="brand-card brand-panel active" data-brand="landrover todas">
+        <div class="brand-hd">
+          <div><div class="brand-name">Land Rover</div></div>
+          <span class="opp-badge opp-media">Nicho premium</span>
+        </div>
+        <div class="brand-tagline">Alta gama · aventura · ticket alto</div>
+        <div class="score-bar"><div class="score-fill" style="width:52%"></div></div>
+        <div class="dpills">
+          <div class="dpill"><span class="dpill-label">Segmento</span><span class="dpill-value">SUV lujo</span></div>
+          <div class="dpill"><span class="dpill-label">Palanca</span><span class="dpill-value">Brand awareness + experiencia</span></div>
+        </div>
+        <div class="brand-insight">Ticket alto implica funnel largo: el usuario investiga 3-6 meses antes de decidir. Estrategia digital de aspiración primero, conversión después. Contenido de herencia y capacidad off-road. Retargeting con audiencias lookalike de clientes existentes. Defender el espacio frente a Porsche, BMW X y Mercedes GLE.</div>
+      </div>
+
+      <div class="brand-card brand-panel active" data-brand="jmc todas">
+        <div class="brand-hd">
+          <div><div class="brand-name">JMC</div></div>
+          <span class="opp-badge opp-alta">Oportunidad alta</span>
+        </div>
+        <div class="brand-tagline">Pickups · flotas · B2B</div>
+        <div class="score-bar"><div class="score-fill" style="width:68%"></div></div>
+        <div class="dpills">
+          <div class="dpill"><span class="dpill-label">Segmento</span><span class="dpill-value">Pickups +18.1%</span></div>
+          <div class="dpill"><span class="dpill-label">Mercado</span><span class="dpill-value">Minería · agro · construcción</span></div>
+          <div class="dpill"><span class="dpill-label">Palanca</span><span class="dpill-value">SEM sectorial + flotas</span></div>
+        </div>
+        <div class="brand-insight">El segmento B2B tiene el lead de mayor calidad: una flota de 20 pickups vale más que 20 leads individuales. Estrategia: campañas SEM segmentadas por industria (minería, agro, construcción, logística) con landing pages por sector. El lead B2B debe ir directo a ejecutivo de flotas, no al flujo general.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ COMPETENCIA ═══════════════ -->
+  <div class="tab-panel" id="tab-competencia">
+
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:4px">Mapa competitivo</div>
+      <div class="sec-sub">Perú · mercado automotriz digital 2026</div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:14px">Competidores por amenaza</div>
+
+      <div class="comp-card">
+        <div class="comp-hd">
+          <div><div class="comp-name">Toyota</div><div class="comp-seg">Híbridos · confianza · líder en volumen</div></div>
+          <span class="threat t-alta">Amenaza alta</span>
+        </div>
+        <div class="comp-body"><strong>El rival más sólido digitalmente.</strong> Lidera búsquedas orgánicas, tiene el mejor NPS del mercado y es el referente en híbridos. Para Hyundai y Geely: atacar con TCO comparativo, disponibilidad inmediata y experiencia de compra digital más fluida.</div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-hd">
+          <div><div class="comp-name">BYD</div><div class="comp-seg">Eléctricos · precio agresivo · expansión rápida</div></div>
+          <span class="threat t-alta">Amenaza alta</span>
+        </div>
+        <div class="comp-body"><strong>El competidor que más crece en electrificados.</strong> BYD Dolphin es uno de los eléctricos más vendidos en Perú. Compite directo con Hyundai Ioniq y Geely. Respuesta: comunicar garantía, red de servicios y respaldo Gildemeister 24/7.</div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-hd">
+          <div><div class="comp-name">Chery / MG / Changan</div><div class="comp-seg">Origen chino · SUV masivo · precio/equipo</div></div>
+          <span class="threat t-alta">Amenaza alta</span>
+        </div>
+        <div class="comp-body"><strong>Representan el grueso del 51.8% chino.</strong> Changan creció 64.5% en la región. Presión de precio intensa. Posicionamiento digital de Geely debe diferenciarse claramente: no es "otro chino", es el grupo dueño de Volvo con estándares europeos.</div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-hd">
+          <div><div class="comp-name">Kia</div><div class="comp-seg">SUV familiar · financiamiento · masividad</div></div>
+          <span class="threat t-media">Amenaza media</span>
+        </div>
+        <div class="comp-body"><strong>Compite directamente con Hyundai en SUV familiar.</strong> Sportage y Seltos atacan el mismo segmento que Tucson y Creta. Diferenciación: activar comparativos digitales específicos y ventajas de post-venta Gildemeister.</div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-hd">
+          <div><div class="comp-name">Nissan</div><div class="comp-seg">Frontier · Kicks · pickups B2B</div></div>
+          <span class="threat t-media">Amenaza media</span>
+        </div>
+        <div class="comp-body"><strong>Frontier compite con JMC en el segmento B2B.</strong> Kicks presiona el entry SUV de Hyundai. SEM comparativo por modelo puede capturar usuarios indecisos entre ambas marcas en el momento de búsqueda activa.</div>
+      </div>
+
+      <div class="comp-card">
+        <div class="comp-hd">
+          <div><div class="comp-name">Omoda & Jaecoo (Chery Premium)</div><div class="comp-seg">Nuevo ingreso 2026 · SUV premium chino</div></div>
+          <span class="threat t-media">Vigilar</span>
+        </div>
+        <div class="comp-body"><strong>Ingresó al Perú en 2026.</strong> Se posiciona como la marca premium de Chery. Apunta al mismo espacio que Geely. Es el movimiento más reciente del mercado y hay que seguirlo de cerca en los próximos meses.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════ ACCIONES ═══════════════ -->
+  <div class="tab-panel" id="tab-acciones">
+
+    <div class="card">
+      <div class="sec-title">Plan 90 días</div>
+      <div class="sec-sub" style="margin-top:2px">Qué haría al entrar · visión Jefe de Marketing Digital</div>
+    </div>
+
+    <div class="action-card">
+      <div class="action-num">Acción 01 · Semanas 1–2</div>
+      <div class="action-title">Auditar el ecosistema digital de cada marca y unificar métricas</div>
+      <div class="action-body">Gildemeister ya tiene presencia digital activa en sus marcas — el punto de partida es sólido. El siguiente nivel es unificar la lectura: mapear el estado actual de sitios, campañas, GA4 y CRM de las 5 marcas para construir un dashboard conjunto de tráfico, leads, CPL y conversión. Lo que se mide en un solo lugar, se optimiza más rápido.</div>
+      <div class="action-tags">
+        <span class="action-tag">GA4</span><span class="action-tag">Power BI</span><span class="action-tag">CRM</span><span class="action-tag">Auditoría</span>
+      </div>
+    </div>
+
+    <div class="action-card">
+      <div class="action-num">Acción 02 · Semanas 2–4</div>
+      <div class="action-title">Rediseñar la arquitectura de paid media por marca y segmento</div>
+      <div class="action-body">Con años en el mercado, Gildemeister ya tiene campañas activas y aprendizajes acumulados por marca. La oportunidad es evolucionar hacia una arquitectura más granular: Hyundai con foco en volumen y CPL eficiente, Volvo en calidad de lead, JMC en segmentación B2B por industria, Land Rover en brand awareness de largo plazo. Cada marca con su propia lógica, todas alineadas a un objetivo comercial común.</div>
+      <div class="action-tags">
+        <span class="action-tag">Google Ads</span><span class="action-tag">Meta Ads</span><span class="action-tag">CPL</span><span class="action-tag">Paid Media</span>
+      </div>
+    </div>
+
+    <div class="action-card">
+      <div class="action-num">Acción 03 · Mes 1–2</div>
+      <div class="action-title">Activar estrategia de electrificados antes que la competencia posicione</div>
+      <div class="action-body">El portafolio Gildemeister ya tiene los productos correctos: Hyundai Ioniq y Volvo eléctricos. El mercado crece 77.3% y la demanda está. La acción es potenciar lo que ya existe: landing pages por modelo con calculadora de ahorro vs. combustión, SEM de alta intención y nurturing educativo. Gildemeister tiene la ventaja de tener el portafolio más completo en electrificados — hay que hacerlo visible.</div>
+      <div class="action-tags">
+        <span class="action-tag">Hyundai</span><span class="action-tag">Volvo</span><span class="action-tag">SEO/SEM</span><span class="action-tag">UX/CRO</span>
+      </div>
+    </div>
+
+    <div class="action-card">
+      <div class="action-num">Acción 04 · Mes 2</div>
+      <div class="action-title">Implementar modelo de lead scoring y routing automático por CRM</div>
+      <div class="action-body">Gildemeister ya gestiona un volumen considerable de leads a través de su red de concesionarios. El siguiente paso es sofisticar esa gestión: implementar scoring automático para priorizar leads de alta intención y routing inmediato por geografía y modelo. Un lead que busca "Hyundai Tucson precio Lima" merece respuesta diferente que uno que descargó un catálogo. Sobre la base existente, se puede acelerar significativamente la tasa de conversión.</div>
+      <div class="action-tags">
+        <span class="action-tag">CRM</span><span class="action-tag">Lead Management</span><span class="action-tag">Automatización</span><span class="action-tag">Conversión</span>
+      </div>
+    </div>
+
+    <div class="action-card">
+      <div class="action-num">Acción 05 · Mes 2–3</div>
+      <div class="action-title">Lanzar radar B2B para JMC con campañas por sector productivo</div>
+      <div class="action-body">JMC ya tiene presencia y clientes B2B en Perú. La oportunidad está en profundizar esa segmentación digitalmente: campañas diferenciadas por industria (minería, agro, construcción, logística), landing pages por sector y nurturing con casos de uso reales de clientes actuales. El lead B2B tiene ticket significativamente mayor — una inversión focalizada aquí tiene alto retorno.</div>
+      <div class="action-tags">
+        <span class="action-tag">JMC</span><span class="action-tag">B2B</span><span class="action-tag">SEM sectorial</span><span class="action-tag">Flotas</span>
+      </div>
+    </div>
+
+    <div class="action-card">
+      <div class="action-num">Acción 06 · Mes 3</div>
+      <div class="action-title">Optimización UX/CRO de sitios web por marca</div>
+      <div class="action-body">Los sitios de Gildemeister reciben tráfico activo. La oportunidad es maximizar lo que ya llega: evaluar velocidad de carga, formularios de cotización, CTAs y experiencia móvil por marca. Priorizar quick wins de CRO antes de proponer rediseños completos. Cada mejora en la tasa de conversión multiplica el retorno de toda la inversión en paid media sin aumentar el presupuesto.</div>
+      <div class="action-tags">
+        <span class="action-tag">UX/UI</span><span class="action-tag">CRO</span><span class="action-tag">Web</span><span class="action-tag">Todas las marcas</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active" onclick="switchTab('hoy',this)">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M3 12L5 10M5 10L12 3L19 10M5 10V20C5 20.55 5.45 21 6 21H9M19 10L21 12M19 10V20C19 20.55 18.55 21 18 21H15M9 21C9 21 9 15 12 15C15 15 15 21 15 21M9 21H15" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Hoy</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('mercado',this)">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V14M8 20V10M12 20V4M16 20V10M20 20V14" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>Mercado</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('marcas',this)">
+    <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" stroke-width="1.8"/><rect x="13" y="3" width="8" height="8" rx="1.5" stroke-width="1.8"/><rect x="3" y="13" width="8" height="8" rx="1.5" stroke-width="1.8"/><rect x="13" y="13" width="8" height="8" rx="1.5" stroke-width="1.8"/></svg>
+    <span>Marcas</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('competencia',this)">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke-width="1.8"/><path d="M21 21L16.65 16.65" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>Competencia</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('acciones',this)">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M9 11L12 14L22 4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3H16" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>Acciones</span>
+  </div>
+</nav>
+
+<script>
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('upd-time').textContent =
+      now.toLocaleDateString('es-PE', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) + ' · Perú';
+  }
+  updateTime();
+
+  function switchTab(tab, el) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    el.classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  function showBrand(brand, el) {
+    document.querySelectorAll('#brand-pills .pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.brand-panel').forEach(card => {
+      card.classList.toggle('active', card.getAttribute('data-brand').includes(brand));
+    });
+  }
+</script>
+</body>
+</html>
